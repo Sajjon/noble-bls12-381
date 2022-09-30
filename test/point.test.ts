@@ -2,7 +2,7 @@ import * as fc from 'fast-check';
 import { Fp, Fp2, PointG1, PointG2 } from '..';
 import { CURVE } from '../math';
 
-const NUM_RUNS = Number(process.env.RUNS_COUNT || 10); // reduce to 1 to shorten test time
+const NUM_RUNS = Number(process.env.RUNS_COUNT || 1); // reduce to 1 to shorten test time
 const FC_BIGINT = fc.bigInt(1n, Fp.ORDER - 1n);
 
 describe('bls12-381 Point', () => {
@@ -30,6 +30,109 @@ describe('bls12-381 Point', () => {
       const a = new PointG1(new Fp(0n), new Fp(1n), new Fp(0n));
       a.assertValidity();
     });
+
+    it("point * 5", () => {
+      const a = new PointG1(
+        new Fp(
+          0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bbn
+        ),
+        new Fp(
+          0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a5888ae40caa532946c5e7e1n
+        ),
+        new Fp(1n)
+      );
+      let a5 = a.multiplyUnsafe(5n);
+        expect(a5.x.toString()).toEqual("01ee86694b38a2513cd24a4648773811645bfc47087f1c758135cd25e871b090ab541a3370f9ade7551308d4fba7dd8b");
+        expect(a5.y.toString()).toEqual("19f31db260c65c64bf01338623dfa71f1c4b9429f19ff8c9c776157d267a44fe6eb83608557ccffef8a31a71e3573d8d");
+        expect(a5.z.toString()).toEqual("0346f0c9f5a5ab5c4454b77bc42d4d63dfead096169aede021098aae8c95e20b8b0425dde1b6a7ed9ee882defee1c6ee");
+    });
+
+    it("point double is mul*2", () => {
+      const a = new PointG1(
+        new Fp(
+          0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bbn
+        ),
+        new Fp(
+          0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a5888ae40caa532946c5e7e1n
+        ),
+        new Fp(1n)
+      );
+      let x = a;
+      let y = a;
+      for (let i = 0; i < 20; ++i) {
+        x = x.double();
+        y = y.multiply(2n);
+      }
+      expect(x.equals(y)).toBe(true);
+    });
+
+    it("point double", () => {
+      const a = new PointG1(
+        new Fp(
+          0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bbn
+        ),
+        new Fp(
+          0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a5888ae40caa532946c5e7e1n
+        ),
+        new Fp(1n)
+      );
+      let a2 = a.double();
+        expect(a2.x.toString()).toEqual("02d7746f66839924e53de9082f8a65e4b5274a17c4fedc762f6e22ddddeb324d29871309744a3604cd346417f302c654");
+        expect(a2.y.toString()).toEqual("0dfc7d639436a6c7ab28584eb49eba8e2e9abc707e0fb990217cbcc77d9a6aabd19d7e3e078c51d0cc5f84ea2cee5e50");
+        expect(a2.z.toString()).toEqual("05e2b2e771f02e7353849a3e7f73987cdebd11ee33761af0bea90c4d508d91f91103f8ffeabd9dfde899dc4d19c2a636");
+    });
+
+    it("point add", () => {
+      let d =  new PointG1(
+        new Fp(0x02d7746f66839924e53de9082f8a65e4b5274a17c4fedc762f6e22ddddeb324d29871309744a3604cd346417f302c654n), 
+          new Fp(0x0dfc7d639436a6c7ab28584eb49eba8e2e9abc707e0fb990217cbcc77d9a6aabd19d7e3e078c51d0cc5f84ea2cee5e50n), 
+            new Fp(0x05e2b2e771f02e7353849a3e7f73987cdebd11ee33761af0bea90c4d508d91f91103f8ffeabd9dfde899dc4d19c2a636n), 
+      )
+      
+      let point = new PointG1(
+        new Fp(0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bbn), 
+        new Fp(0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a5888ae40caa532946c5e7e1n), 
+        new Fp(0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001n),
+      )
+
+      let sum = point.add(d);
+      expect(sum.x.toString()).toEqual("0c3c926ff79142f05674c562e83ae387c825591a4b3bf3ff805c2811e2692629219fe79966872509e1f922d6b69dd4e6");
+      expect(sum.y.toString()).toEqual("0cc975875c1d9b3a529a8f0add6dab65da11a7f47219bd1b8167717bdb62e5478447484a2ed9e8c7f0bfc8ad4088f8b9");
+      expect(sum.z.toString()).toEqual("18a86b9f1311f110046bc73aceb078b73f493280837e79cda1de1c63cbba1358a3068cf775186bbddeef738ae4924b99");
+    });
+
+    it("point * 3", () => {
+      const a = new PointG1(
+        new Fp(
+          0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bbn
+        ),
+        new Fp(
+          0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a5888ae40caa532946c5e7e1n
+        ),
+        new Fp(1n)
+      );
+      let a3 = a.multiplyUnsafe(3n);
+        expect(a3.x.toString()).toEqual("0c3c926ff79142f05674c562e83ae387c825591a4b3bf3ff805c2811e2692629219fe79966872509e1f922d6b69dd4e6");
+        expect(a3.y.toString()).toEqual("0cc975875c1d9b3a529a8f0add6dab65da11a7f47219bd1b8167717bdb62e5478447484a2ed9e8c7f0bfc8ad4088f8b9");
+        expect(a3.z.toString()).toEqual("18a86b9f1311f110046bc73aceb078b73f493280837e79cda1de1c63cbba1358a3068cf775186bbddeef738ae4924b99");
+    });
+
+
+    it("point * 2", () => {
+      const a = new PointG1(
+        new Fp(
+          0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bbn
+        ),
+        new Fp(
+          0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a5888ae40caa532946c5e7e1n
+        ),
+        new Fp(1n)
+      );
+      let a2 = a.multiplyUnsafe(2n);
+        expect(a2.x.toString()).toEqual("02d7746f66839924e53de9082f8a65e4b5274a17c4fedc762f6e22ddddeb324d29871309744a3604cd346417f302c654");
+        expect(a2.y.toString()).toEqual("0dfc7d639436a6c7ab28584eb49eba8e2e9abc707e0fb990217cbcc77d9a6aabd19d7e3e078c51d0cc5f84ea2cee5e50");
+        expect(a2.z.toString()).toEqual("05e2b2e771f02e7353849a3e7f73987cdebd11ee33761af0bea90c4d508d91f91103f8ffeabd9dfde899dc4d19c2a636");
+    });
     it('should be placed on curve vector 2', () => {
       const a = new PointG1(
         new Fp(
@@ -40,6 +143,8 @@ describe('bls12-381 Point', () => {
         ),
         new Fp(1n)
       );
+      console.log("a: " + a.toString(false));
+      console.log("a.affine: " + a.toString());
       a.assertValidity();
     });
     it('should be placed on curve vector 3', () => {
@@ -98,6 +203,9 @@ describe('bls12-381 Point', () => {
       );
       const double = a.double();
       double.assertValidity();
+
+      // let doubleManual = new PointG1()
+
       expect(double).toEqual(
         new PointG1(
           new Fp(

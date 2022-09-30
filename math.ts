@@ -222,7 +222,7 @@ export class Fp implements Field<Fp> {
 
   toString() {
     const str = this.value.toString(16).padStart(96, '0');
-    return str.slice(0, 2) + '.' + str.slice(-2);
+    return str
   }
 }
 
@@ -357,7 +357,10 @@ export class Fp2 implements Field<Fp2> {
     return this.c0.isZero() && this.c1.isZero();
   }
   toString() {
-    return `Fp2(${this.c0} + ${this.c1}×i)`;
+    return `Fp2(
+      c0: ${this.c0} 
+      c1: ${this.c1}
+    )`;
   }
   // real, imaginary
   reim() {
@@ -501,7 +504,11 @@ export class Fp6 implements Field<Fp6> {
     return new Fp6(c0.negate(), c1.negate(), c2.negate());
   }
   toString() {
-    return `Fp6(${this.c0} + ${this.c1} * v, ${this.c2} * v^2)`;
+    return `Fp6(
+      c0: ${this.c0}
+      c1: ${this.c1}
+      c2: ${this.c2}
+    )`;
   }
   equals(rhs: Fp6): boolean {
     const {c0, c1, c2} = this;
@@ -632,7 +639,10 @@ export class Fp12 implements Field<Fp12> {
     return this.c0.isZero() && this.c1.isZero();
   }
   toString() {
-    return `Fp12(${this.c0} + ${this.c1} * w)`;
+    return `Fp12(
+      c0: ${this.c0}
+      c1: ${this.c1}
+    )`;
   }
   negate(): Fp12 {
     const {c0, c1} = this;
@@ -734,7 +744,7 @@ export class Fp12 implements Field<Fp12> {
   //   GΦₙ(p) = {α ∈ Fpⁿ : α^Φₙ(p) = 1}
   // The result of any pairing is in a cyclotomic subgroup
   // https://eprint.iacr.org/2009/565.pdf
-  private cyclotomicSquare(): Fp12 {
+  cyclotomicSquare(): Fp12 {
     const {c0: c0c0, c1: c0c1, c2: c0c2} = this.c0;
     const {c0: c1c0, c1: c1c1, c2: c1c2} = this.c1;
     const {first: t3, second: t4} = this.Fp4Square(c0c0, c1c1);

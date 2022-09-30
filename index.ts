@@ -135,7 +135,7 @@ function bytesToNumberBE(uint8a: Uint8Array): bigint {
 }
 
 const hexes = Array.from({ length: 256 }, (v, i) => i.toString(16).padStart(2, '0'));
-function bytesToHex(uint8a: Uint8Array): string {
+export function bytesToHex(uint8a: Uint8Array): string {
   // pre-caching chars could speed this up 6x.
   let hex = '';
   for (let i = 0; i < uint8a.length; i++) {
@@ -144,7 +144,7 @@ function bytesToHex(uint8a: Uint8Array): string {
   return hex;
 }
 
-function hexToBytes(hex: string): Uint8Array {
+export function hexToBytes(hex: string): Uint8Array {
   if (typeof hex !== 'string') {
     throw new TypeError('hexToBytes: expected string, got ' + typeof hex);
   }
@@ -192,7 +192,7 @@ function concatBytes(...arrays: Uint8Array[]): Uint8Array {
 }
 
 // UTF8 to ui8a
-function stringToBytes(str: string) {
+export function stringToBytes(str: string) {
   const bytes = new Uint8Array(str.length);
   for (let i = 0; i < str.length; i++) {
     bytes[i] = str.charCodeAt(i);
@@ -212,9 +212,9 @@ function os2ip(bytes: Uint8Array): bigint {
 
 // Integer to Octet Stream
 function i2osp(value: number, length: number): Uint8Array {
-  if (value < 0 || value >= 1 << (8 * length)) {
-    throw new Error(`bad I2OSP call: value=${value} length=${length}`);
-  }
+  // if (value < 0 || value >= 1 << (8 * length)) {
+  //   throw new Error(`bad I2OSP call: value=${value} length=${length}`);
+  // }
   const res = Array.from({ length }).fill(0) as number[];
   for (let i = length - 1; i >= 0; i--) {
     res[i] = value & 0xff;
@@ -233,7 +233,7 @@ function strxor(a: Uint8Array, b: Uint8Array): Uint8Array {
 
 // Produces a uniformly random byte string using a cryptographic hash function H that outputs b bits
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-11#section-5.4.1
-async function expand_message_xmd(
+export async function expand_message_xmd(
   msg: Uint8Array,
   DST: Uint8Array,
   lenInBytes: number
@@ -265,7 +265,7 @@ async function expand_message_xmd(
 // count - the number of elements of F to output.
 // Outputs:
 // [u_0, ..., u_(count - 1)], a list of field elements.
-async function hash_to_field(msg: Uint8Array, count: number, options = {}): Promise<bigint[][]> {
+export async function hash_to_field(msg: Uint8Array, count: number, options = {}): Promise<bigint[][]> {
   // if options is provided but incomplete, fill any missing fields with the
   // value in hftDefaults (ie hash to G2).
   const htfOptions = { ...htfDefaults, ...options };
@@ -480,9 +480,10 @@ export class PointG2 extends ProjectivePoint<Fp2> {
 
   // Encodes byte string to elliptic curve
   // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-11#section-3
-  static async hashToCurve(msg: Hex) {
+  static async hashToCurve(msg: Hex, options = {}) {
     msg = ensureBytes(msg);
-    const u = await hash_to_field(msg, 2);
+
+    const u = await hash_to_field(msg, 2, options);
     //console.log(`hash_to_curve(msg}) u0=${new Fp2(u[0])} u1=${new Fp2(u[1])}`);
     const Q0 = new PointG2(...isogenyMapG2(map_to_curve_simple_swu_9mod16(u[0])));
     const Q1 = new PointG2(...isogenyMapG2(map_to_curve_simple_swu_9mod16(u[1])));
